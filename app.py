@@ -34,6 +34,15 @@ except Exception as e:
     st.stop()
 
 
+# Feature names in the original model training order
+feature_names = [
+    "IQ",
+    "CGPA",
+    "10th Marks",
+    "12th Marks",
+    "Communication Skills"
+]
+
 # Get expected number of features
 n_features = getattr(model, "n_features_in_", None)
 
@@ -41,14 +50,21 @@ if n_features is None:
     st.error("Unable to determine the number of input features.")
     st.stop()
 
+if n_features != len(feature_names):
+    st.error(
+        f"Model expects {n_features} features, "
+        f"but {len(feature_names)} names are provided."
+    )
+    st.stop()
+
 st.subheader("Enter Student Information")
 
 # Input fields
 features = []
 
-for i in range(n_features):
+for i, feature_name in enumerate(feature_names):
     value = st.number_input(
-        f"Feature {i + 1}",
+        feature_name,
         value=0.0,
         step=1.0,
         key=f"feature_{i}"
@@ -59,17 +75,19 @@ for i in range(n_features):
 if st.button("Predict Placement", type="primary"):
     try:
         input_data = np.array(
-            features, dtype=float
+            features,
+            dtype=float
         ).reshape(1, -1)
 
         prediction = model.predict(input_data)
-
         result = prediction[0]
 
         if result == 1:
             st.success("🎉 Prediction: Placed")
+
         elif result == 0:
             st.warning("Prediction: Not Placed")
+
         else:
             st.info(f"Prediction result: {result}")
 
